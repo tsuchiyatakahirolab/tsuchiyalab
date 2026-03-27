@@ -2,17 +2,22 @@
 
 import { useEffect, useCallback, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   const [lang, setLang] = useState<"ja" | "en">("ja");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   /* ── Persist & restore ── */
   useEffect(() => {
     const savedLang = localStorage.getItem("tsl_lang") as "ja" | "en" | null;
-    const savedTheme = localStorage.getItem("tsl_theme") as "dark" | "light" | null;
+    const savedTheme = localStorage.getItem("tsl_theme") as
+      | "dark"
+      | "light"
+      | null;
     if (savedLang) setLang(savedLang);
     if (savedTheme) setTheme(savedTheme);
   }, []);
@@ -38,7 +43,19 @@ export default function Home() {
     return () => window.removeEventListener("resize", apply);
   }, []);
 
-  /* ── Scroll reveal ── */
+  /* ── Scroll progress ── */
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(docHeight > 0 ? scrollTop / docHeight : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* ── Scroll reveal (staggered) ── */
   useEffect(() => {
     const els = document.querySelectorAll(
       ".card, .section-title, h2, .lede, .cta, .metrics, .solutions-grid, .approach-grid, .grid-3"
@@ -60,6 +77,20 @@ export default function Home() {
     );
     els.forEach((el) => {
       el.classList.add("reveal");
+      // Stagger siblings within the same parent
+      const parent = el.parentElement;
+      if (parent) {
+        const siblings = Array.from(
+          parent.querySelectorAll(":scope > .card, :scope > .reveal")
+        );
+        const idx = siblings.indexOf(el);
+        if (idx >= 0) {
+          (el as HTMLElement).style.setProperty(
+            "--reveal-delay",
+            `${idx * 0.08}s`
+          );
+        }
+      }
       io.observe(el);
     });
     return () => io.disconnect();
@@ -90,15 +121,27 @@ export default function Home() {
   }, []);
 
   const toggleLang = () => setLang((l) => (l === "ja" ? "en" : "ja"));
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const year = new Date().getFullYear();
 
   return (
     <>
+      {/* ════ SCROLL PROGRESS ════ */}
+      <div
+        className="scroll-progress"
+        style={{ width: `${scrollProgress * 100}%` }}
+        aria-hidden="true"
+      />
+
       {/* ════ HEADER ════ */}
       <header>
-        <div className="container nav" ref={navRef} data-open={menuOpen ? "true" : "false"}>
+        <div
+          className="container nav"
+          ref={navRef}
+          data-open={menuOpen ? "true" : "false"}
+        >
           <div className="left-controls">
             <button
               type="button"
@@ -133,19 +176,39 @@ export default function Home() {
 
           <div className="right">
             <nav className="links" aria-label="Main">
-              <a href="#vision" className="link-uline" onClick={handleAnchorClick}>
+              <a
+                href="#vision"
+                className="link-uline"
+                onClick={handleAnchorClick}
+              >
                 Vision
               </a>
-              <a href="#solutions" className="link-uline" onClick={handleAnchorClick}>
+              <a
+                href="#solutions"
+                className="link-uline"
+                onClick={handleAnchorClick}
+              >
                 Solutions
               </a>
-              <a href="#approach" className="link-uline" onClick={handleAnchorClick}>
+              <a
+                href="#approach"
+                className="link-uline"
+                onClick={handleAnchorClick}
+              >
                 Approach
               </a>
-              <a href="#trust" className="link-uline" onClick={handleAnchorClick}>
+              <a
+                href="#trust"
+                className="link-uline"
+                onClick={handleAnchorClick}
+              >
                 Trust
               </a>
-              <a href="#contact" className="btn primary" onClick={handleAnchorClick}>
+              <a
+                href="#contact"
+                className="btn primary"
+                onClick={handleAnchorClick}
+              >
                 <span className="jp">相談する</span>
                 <span className="en">Contact</span>
               </a>
@@ -175,20 +238,27 @@ export default function Home() {
             <h1 className="jp">つくって、伸ばして、守る。</h1>
             <h1 className="en">Build. Scale. Safeguard.</h1>
             <p className="lede jp">
-              TSUCHIYA LABは、SaaS、コンサルティング、IP（キャラクター）を横断して、アイデアを事業とブランド価値へ変える。
+              TSUCHIYA
+              LABは、SaaS、コンサルティング、IP（キャラクター）を横断して、アイデアを事業とブランド価値へ変える。
             </p>
-            <p className="jp">企画から運用まで伴走し、着実に成果へつなげます。</p>
+            <p className="jp">
+              企画から運用まで伴走し、着実に成果へつなげます。
+            </p>
             <p className="lede en">
-              We turn ideas into sustainable products and brand value across SaaS,
-              consulting, and character IP. From planning to operations, we partner
-              end‑to‑end to deliver outcomes.
+              We turn ideas into sustainable products and brand value across
+              SaaS, consulting, and character IP. From planning to operations, we
+              partner end‑to‑end to deliver outcomes.
             </p>
             <div className="cta">
-              <a className="btn" href="#contact" onClick={handleAnchorClick}>
+              <a className="btn primary" href="#contact" onClick={handleAnchorClick}>
                 <span className="jp">資料請求・ご相談</span>
                 <span className="en">Request info / Contact</span>
               </a>
-              <a className="btn ghost link-uline" href="#solutions" onClick={handleAnchorClick}>
+              <a
+                className="btn ghost link-uline"
+                href="#solutions"
+                onClick={handleAnchorClick}
+              >
                 <span className="jp">サービス一覧</span>
                 <span className="en">See services</span>
               </a>
@@ -226,8 +296,8 @@ export default function Home() {
                   小さく速くつくり、確かに伸ばし、長く使われるものに。SaaS・運用・ブランドを一体で設計し、現場に効く実装を届けます。
                 </p>
                 <p className="en">
-                  Ship fast, grow reliably, and build for the long run. We design SaaS,
-                  operations, and brand as one coherent system.
+                  Ship fast, grow reliably, and build for the long run. We design
+                  SaaS, operations, and brand as one coherent system.
                 </p>
               </div>
               <div className="card lg">
@@ -237,8 +307,8 @@ export default function Home() {
                   プロトタイプ→検証→本実装を短サイクルで回し、成果に直結する箇所に集中。
                 </p>
                 <p className="en">
-                  Prototype → validate → harden in tight loops, focusing on what moves
-                  outcomes.
+                  Prototype → validate → harden in tight loops, focusing on what
+                  moves outcomes.
                 </p>
               </div>
               <div className="card lg">
@@ -248,8 +318,8 @@ export default function Home() {
                   使いやすさと説明責任を重視し、わかりやすく、安全に、継続して使える体験を設計。
                 </p>
                 <p className="en">
-                  We prioritize usability and accountability to create clear, safe, and
-                  durable experiences.
+                  We prioritize usability and accountability to create clear,
+                  safe, and durable experiences.
                 </p>
               </div>
             </div>
@@ -270,10 +340,12 @@ export default function Home() {
                     社会・現場の課題に向き合う小さなSaaSを素早く立ち上げ、継続的に磨き込む。
                   </li>
                   <li className="en">
-                    We launch lean SaaS for real problems and refine continuously with
-                    users.
+                    We launch lean SaaS for real problems and refine continuously
+                    with users.
                   </li>
-                  <li className="jp">要件定義から運用・サポートまで一貫伴走。</li>
+                  <li className="jp">
+                    要件定義から運用・サポートまで一貫伴走。
+                  </li>
                   <li className="en">
                     End‑to‑end partnership from scoping to operations.
                   </li>
@@ -293,8 +365,8 @@ export default function Home() {
                     小規模組織の戦略設計と実装支援（測定設計・情報整理・顧客対応の仕組み化）。
                   </li>
                   <li className="en">
-                    Strategy and implementation for small teams (measurement, knowledge,
-                    customer care systems).
+                    Strategy and implementation for small teams (measurement,
+                    knowledge, customer care systems).
                   </li>
                   <li className="jp">
                     リスクマネジメントとコンプライアンスの体制づくり。
@@ -345,8 +417,8 @@ export default function Home() {
                   社会課題の解決につながるプロダクト仮説を立て、小さく検証し、使われ続ける体験を磨く。
                 </p>
                 <p className="muted en">
-                  Form hypotheses around real‑world problems, validate small, and iterate
-                  into durable, used‑everyday products.
+                  Form hypotheses around real‑world problems, validate small, and
+                  iterate into durable, used‑everyday products.
                 </p>
               </div>
               <div className="card">
@@ -356,8 +428,8 @@ export default function Home() {
                   ルールや手順を一元化し、検索しやすく、権限に応じて安全に共有。ログを残し、振り返れる体制に。
                 </p>
                 <p className="muted en">
-                  Centralize rules and playbooks, share safely by role, and keep audit
-                  trails for continuous improvement.
+                  Centralize rules and playbooks, share safely by role, and keep
+                  audit trails for continuous improvement.
                 </p>
               </div>
               <div className="card">
@@ -367,8 +439,8 @@ export default function Home() {
                   設計テンプレートと量産フローを整備し、配布チャネルへスムーズに接続。権利保護も並走。
                 </p>
                 <p className="muted en">
-                  Templates and batch flows connect smoothly to distribution channels
-                  with rights protection alongside.
+                  Templates and batch flows connect smoothly to distribution
+                  channels with rights protection alongside.
                 </p>
               </div>
               <div className="card">
@@ -378,7 +450,8 @@ export default function Home() {
                   成果指標を明確化し、ダッシュボードで可視化。意思決定の速度を上げる。
                 </p>
                 <p className="muted en">
-                  Clarify outcome metrics and visualize them to speed decision‑making.
+                  Clarify outcome metrics and visualize them to speed
+                  decision‑making.
                 </p>
               </div>
             </div>
@@ -393,9 +466,18 @@ export default function Home() {
             <div className="grid-3">
               <div
                 className="card lg"
-                style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  alignItems: "flex-start",
+                }}
               >
-                <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path fill="currentColor" d="M3 7h10v10H3z" opacity=".5" />
                   <path fill="currentColor" d="M11 3h10v10H11z" />
                 </svg>
@@ -404,22 +486,48 @@ export default function Home() {
               </div>
               <div
                 className="card lg"
-                style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  alignItems: "flex-start",
+                }}
               >
-                <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path fill="currentColor" d="M3 20h18v-2H3z" />
-                  <path fill="currentColor" d="M5 18V8l7-4 7 4v10z" opacity=".7" />
+                  <path
+                    fill="currentColor"
+                    d="M5 18V8l7-4 7 4v10z"
+                    opacity=".7"
+                  />
                 </svg>
                 <p className="muted jp">大学・研究機関</p>
                 <p className="muted en">Universities &amp; Institutes</p>
               </div>
               <div
                 className="card lg"
-                style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  alignItems: "flex-start",
+                }}
               >
-                <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  className="icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path fill="currentColor" d="M4 4h16v6H4z" />
-                  <path fill="currentColor" d="M4 10h16v10H4z" opacity=".5" />
+                  <path
+                    fill="currentColor"
+                    d="M4 10h16v10H4z"
+                    opacity=".5"
+                  />
                 </svg>
                 <p className="muted jp">自治体・公的機関</p>
                 <p className="muted en">Public Sector</p>
@@ -439,12 +547,15 @@ export default function Home() {
                   デモ／見積もり／共同開発のご相談はメールまたはフォームから。通常48時間以内に返信します。
                 </p>
                 <p className="en">
-                  For demos, quotes, or co‑development, reach out via email or form.
-                  Typically replies within 48 hours.
+                  For demos, quotes, or co‑development, reach out via email or
+                  form. Typically replies within 48 hours.
                 </p>
                 <p className="muted">
                   Email:{" "}
-                  <a href="mailto:info@tsuchiyalab.com" className="link-uline">
+                  <a
+                    href="mailto:info@tsuchiyalab.com"
+                    className="link-uline"
+                  >
                     info@tsuchiyalab.com
                   </a>
                 </p>
@@ -460,7 +571,7 @@ export default function Home() {
                   </a>
                 </p>
                 <div className="cta">
-                  <a className="btn" href="mailto:info@tsuchiyalab.com">
+                  <a className="btn primary" href="mailto:info@tsuchiyalab.com">
                     <span className="jp">メールで相談する</span>
                     <span className="en">Email us</span>
                   </a>
@@ -517,18 +628,19 @@ export default function Home() {
       </main>
 
       {/* ════ FOOTER ════ */}
-      <footer
-        className="site-footer"
-        style={{
-          borderTop: "1px solid var(--line)",
-          padding: "30px 0",
-          color: "var(--muted)",
-        }}
-      >
-        <div className="container">
-          © {year} TSUCHIYA LAB.{" "}
-          <span className="jp">プライバシー / 利用規約</span>
-          <span className="en">Privacy / Terms</span>
+      <footer className="site-footer">
+        <div className="container footer-inner">
+          <span>© {year} TSUCHIYA LAB.</span>
+          <nav className="footer-links" aria-label="Legal">
+            <Link href="/privacy">
+              <span className="jp">プライバシーポリシー</span>
+              <span className="en">Privacy</span>
+            </Link>
+            <Link href="/terms">
+              <span className="jp">利用規約</span>
+              <span className="en">Terms</span>
+            </Link>
+          </nav>
         </div>
       </footer>
     </>
