@@ -20,9 +20,6 @@ export const metadata: Metadata = {
   description:
     "TSUCHIYA LABは、SaaS・コンサルティング・IP（キャラクター）を横断して、アイデアを事業とブランド価値へ変えるスタジオです。",
   metadataBase: new URL("https://tsuchiyalab.com"),
-  icons: {
-    icon: "/icon.svg",
-  },
   openGraph: {
     type: "website",
     title: "TSUCHIYA LAB | SaaS・コンサルティング・IPスタジオ",
@@ -44,6 +41,15 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 const jsonLd = {
