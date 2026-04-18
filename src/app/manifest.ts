@@ -34,5 +34,24 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
+    screenshots: [
+      {
+        src: "/screenshots/desktop-1280x720.png",
+        sizes: "1280x720",
+        type: "image/png",
+        form_factor: "wide",
+        label: "TSUCHIYA LAB – Desktop view",
+      },
+      {
+        src: "/screenshots/mobile-750x1334.png",
+        sizes: "750x1334",
+        type: "image/png",
+        form_factor: "narrow",
+        label: "TSUCHIYA LAB – Mobile view",
+      },
+    ],
+    categories: ["business", "productivity"],
+    lang: "ja",
+    dir: "ltr",
   };
 }
